@@ -4,7 +4,7 @@
 
  - Créer un environment virtuel
  ```python
- pip -m venv venv
+ python -m venv venv
  ``` 
  - Charger l'environnement python
  ```python
