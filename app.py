@@ -4,12 +4,19 @@ import uuid
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import sqlite3
+import pandas as pd
+
 
 # Configuration pour l'envoi d'emails
 SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 SMTP_USERNAME = "vincent.roullier@gmail.com"
 SMTP_PASSWORD = "hhxg qzst jemv hvxt"
+
+# Identifiants de l'administrateur
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "mot_de_passe_admin_securise"
+
 
 # Initialisation de la base de données
 def init_db():
@@ -107,32 +114,108 @@ def activity_form(email):
         save_activity(email, niveau, sous_niveau, frequence, resultat) 
         st.success("Activité enregistrée avec succès!")
 
+def admin_login():
+    st.header("Connexion Administrateur")
+    email = st.text_input("Email admin")
+    password = st.text_input("Mot de passe admin", type="password")
+    if st.button("Connexion"):
+        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+            st.session_state.admin_logged_in = True
+            st.success("Connecté en tant qu'administrateur")
+        else:
+            st.error("Email ou mot de passe incorrect")
+
+
+def admin_panel():
+    st.header("Panel Administrateur")
+    
+    if st.button("Déconnexion"):
+        st.session_state.admin_logged_in = False
+        st.experimental_rerun()
+
+    # Gestion des utilisateurs
+    st.subheader("Gestion des utilisateurs")
+    conn = sqlite3.connect('users.db')
+    users_df = pd.read_sql_query("SELECT * FROM users", conn)
+    st.dataframe(users_df)
+    
+    # Option pour désactiver un utilisateur
+    user_to_deactivate = st.selectbox("Sélectionner un utilisateur à désactiver", users_df['email'])
+    if st.button("Désactiver l'utilisateur"):
+        c = conn.cursor()
+        c.execute("UPDATE users SET is_active = 0 WHERE email = ?", (user_to_deactivate,))
+        conn.commit()
+        st.success(f"Utilisateur {user_to_deactivate} désactivé")
+    
+    # Affichage des activités
+    st.subheader("Activités enregistrées")
+    activities_df = pd.read_sql_query("SELECT * FROM activities", conn)
+    st.dataframe(activities_df)
+    
+    conn.close()
+
 def main():
     st.title("Enregistrement d'activités pédagogiques")
 
     init_db()
+    
+    # Vérification si l'administrateur est connecté
+    if 'admin_logged_in' not in st.session_state:
+        st.session_state.admin_logged_in = False
 
-    params = st.experimental_get_query_params()
-    unique_id = params.get("id", [""])[0]
+    # Bouton pour accéder à la page de connexion admin
+    if not st.session_state.admin_logged_in and st.button("Accès Administrateur"):
+        st.session_state.show_admin_login = True
 
-    if unique_id:
-        email = is_valid_link(unique_id)
-        if email:
-            st.success(f"Connecté en tant que {email}")
-            activity_form(email)
-        else:
-            st.error("Lien de connexion invalide ou expiré.")
-            st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
+    if st.session_state.get('show_admin_login', False):
+        admin_login()
+
+    if st.session_state.admin_logged_in:
+        admin_panel()
     else:
-        st.header("Inscription / Connexion")
-        email = st.text_input("Adresse email")
-        if st.button("Envoyer le lien de connexion"):
-            try:
-                send_login_link(email)
-                st.success("Un lien de connexion a été envoyé à votre adresse email.")
-                st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
-            except Exception as e:
-                st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
+        params = st.experimental_get_query_params()
+        unique_id = params.get("id", [""])[0]
+
+        if unique_id:
+            email = is_valid_link(unique_id)
+            if email:
+                st.success(f"Connecté en tant que {email}")
+                activity_form(email)
+            else:
+                st.error("Lien de connexion invalide ou expiré.")
+                st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
+        else:
+            st.header("Inscription / Connexion")
+            email = st.text_input("Adresse email")
+            if st.button("Envoyer le lien de connexion"):
+                try:
+                    send_login_link(email)
+                    st.success("Un lien de connexion a été envoyé à votre adresse email.")
+                    st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
+                except Exception as e:
+                    st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
+
+    # params = st.experimental_get_query_params()
+    # unique_id = params.get("id", [""])[0]
+
+    # if unique_id:
+    #     email = is_valid_link(unique_id)
+    #     if email:
+    #         st.success(f"Connecté en tant que {email}")
+    #         activity_form(email)
+    #     else:
+    #         st.error("Lien de connexion invalide ou expiré.")
+    #         st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
+    # else:
+    #     st.header("Inscription / Connexion")
+    #     email = st.text_input("Adresse email")
+    #     if st.button("Envoyer le lien de connexion"):
+    #         try:
+    #             send_login_link(email)
+    #             st.success("Un lien de connexion a été envoyé à votre adresse email.")
+    #             st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
+    #         except Exception as e:
+    #             st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
 
 if __name__ == "__main__":
     main()
