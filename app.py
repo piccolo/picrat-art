@@ -6,6 +6,11 @@ from email.mime.multipart import MIMEMultipart
 import sqlite3
 import pandas as pd
 
+if "role" not in st.session_state:
+    st.session_state.role = None
+
+
+ROLES = [None, "Admin", "User"]
 
 # Configuration pour l'envoi d'emails
 SMTP_SERVER = "smtp.gmail.com"
@@ -121,6 +126,7 @@ def admin_login():
     if st.button("Connexion"):
         if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
             st.session_state.admin_logged_in = True
+            st.session_state.role = "Admin"
             st.success("Connecté en tant qu'administrateur")
         else:
             st.error("Email ou mot de passe incorrect")
@@ -154,23 +160,32 @@ def admin_panel():
     
     conn.close()
 
+def logout():
+    st.session_state.role = None
+    st.rerun()
+
 def main():
     st.title("Enregistrement d'activités pédagogiques")
 
     init_db()
     
+    logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
+
+
     # Vérification si l'administrateur est connecté
     if 'admin_logged_in' not in st.session_state:
         st.session_state.admin_logged_in = False
+        st.session_state.role = "Admin"
 
     # Bouton pour accéder à la page de connexion admin
     if not st.session_state.admin_logged_in and st.button("Accès Administrateur"):
         st.session_state.show_admin_login = True
 
-    if st.session_state.get('show_admin_login', False):
-        admin_login()
+    if st.session_state.role == None :
+        if st.session_state.get('show_admin_login', False):
+            admin_login()
 
-    if st.session_state.admin_logged_in:
+    if st.session_state.role == "Admin" and st.session_state.admin_logged_in:
         admin_panel()
     else:
         params = st.experimental_get_query_params()
@@ -180,6 +195,7 @@ def main():
             email = is_valid_link(unique_id)
             if email:
                 st.success(f"Connecté en tant que {email}")
+                st.session_state.role="User"
                 activity_form(email)
             else:
                 st.error("Lien de connexion invalide ou expiré.")
@@ -216,6 +232,59 @@ def main():
     #             st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
     #         except Exception as e:
     #             st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
+def login():
+    et = True
+    ad = st.button("Accès Administrateur")
+    us = st.button("Inscription/Connexion")
+    if  ad: 
+        admin_login()
+    elif us:
+        st.header("Inscription/Connexion")
+        email = st.text_input("Adresse email")
+        if st.button("Envoyer le lien de connexion"):
+            try:
+                send_login_link(email)
+                st.success("Un lien de connexion a été envoyé à votre adresse email.")
+                st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
+            except Exception as e:
+                st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
+
+
+def main2():
+    #st.session_state.role="User"
+
+    st.header("Main 2")
+    st.title("hello world")
+    
+ 
+    
+    params = st.experimental_get_query_params()
+    unique_id = params.get("id", [""])[0]
+    print(unique_id)
+
+    if unique_id:
+        email = is_valid_link(unique_id)
+        if email:
+            st.success(f"Connecté en tant que {email}")
+            st.session_state.role="User"
+            #activity_form(email)
+        else:
+            st.error("Lien de connexion invalide ou expiré.")
+            st.session_state.role=None
+            st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
+
+
+    if st.session_state.role == "Admin":
+        admin = st.Page("admin/admin_page.py", title="Admin")
+        logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
+        pg = st.navigation({"Administrateur" : [admin, logout_page]})
+    elif st.session_state.role == "User":
+        user = st.Page("user/user_page.py", title="User")
+        logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
+        pg = st.navigation({"Utilisateur" : [user, logout_page]})
+    else:
+        pg = st.navigation([st.Page(login)])
+    pg.run()
 
 if __name__ == "__main__":
-    main()
+    main2()
