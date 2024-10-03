@@ -20,7 +20,7 @@ SMTP_PASSWORD = "hhxg qzst jemv hvxt"
 
 # Identifiants de l'administrateur
 ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "mot_de_passe_admin_securise"
+ADMIN_PASSWORD = "mdp"
 
 
 # Initialisation de la base de données
@@ -127,6 +127,7 @@ def admin_login():
         if st.form_submit_button("Connexion"):
             if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
                 st.session_state.admin_logged_in = True
+                st.session_state.show_admin_login = False
                 st.session_state.role = "Admin"
                 st.success("Connecté en tant qu'administrateur")
         else:
@@ -182,9 +183,9 @@ def main():
     if not st.session_state.admin_logged_in and st.button("Accès Administrateur"):
         st.session_state.show_admin_login = True
 
-    if st.session_state.role == None :
-        if st.session_state.get('show_admin_login', False):
-            admin_login()
+    # if st.session_state.role == None :
+    #     if st.session_state.get('show_admin_login', False):
+    #         admin_login()
 
     if st.session_state.role == "Admin" and st.session_state.admin_logged_in:
         admin_panel()
@@ -268,36 +269,37 @@ def main2():
 
     #st.session_state.role="User"
 
-    st.header("Main 2")
-    st.title("hello world")
+    # st.header("Main 2")
+    # st.title("hello world")
     
-    params = st.experimental_get_query_params()
-    unique_id = params.get("id", [""])[0]
-    print(unique_id)
+    # params = st.experimental_get_query_params()
+    # unique_id = params.get("id", [""])[0]
+    # print(unique_id)
 
-    if unique_id:
-        email = is_valid_link(unique_id)
-        if email:
-            st.success(f"Connecté en tant que {email}")
-            st.session_state.role="User"
-            #activity_form(email)
-        else:
-            st.error("Lien de connexion invalide ou expiré.")
-            st.session_state.role=None
-            st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
+    # if unique_id:
+    #     email = is_valid_link(unique_id)
+    #     if email:
+    #         st.success(f"Connecté en tant que {email}")
+    #         st.session_state.role="User"
+    #         #activity_form(email)
+    #     else:
+    #         st.error("Lien de connexion invalide ou expiré.")
+    #         st.session_state.role=None
+    #         st.button("Retour à l'inscription", on_click=lambda: st.experimental_set_query_params())
 
 
-    if st.session_state.role == "Admin":
-        admin = st.Page("admin/admin_page.py", title="Admin")
-        logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
-        pg = st.navigation({"Administrateur" : [admin, logout_page]})
-    elif st.session_state.role == "User":
-        user = st.Page("user/user_page.py", title="User")
-        logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
-        pg = st.navigation({"Utilisateur" : [user, logout_page]})
-    else:
-        pg = st.navigation([st.Page(login)])
-    pg.run()
+    # if st.session_state.role == "Admin":
+    #     admin = st.Page("admin/admin_page.py", title="Admin")
+    #     logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
+    #     pg = st.navigation({"Administrateur" : [admin, logout_page]})
+    # elif st.session_state.role == "User":
+    #     user = st.Page("user/user_page.py", title="User")
+    #     logout_page = st.Page(logout, title="Log out", icon=":material/logout:")
+    #     pg = st.navigation({"Utilisateur" : [user, logout_page]})
+    # #else:
+        
+    # #    pg = st.navigation([st.Page(login)])
+    # pg.run()
 
 if __name__ == "__main__":
     main2()
