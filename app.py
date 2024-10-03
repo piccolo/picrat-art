@@ -121,15 +121,16 @@ def activity_form(email):
 
 def admin_login():
     st.header("Connexion Administrateur")
-    email = st.text_input("Email admin")
-    password = st.text_input("Mot de passe admin", type="password")
-    if st.button("Connexion"):
-        if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-            st.session_state.admin_logged_in = True
-            st.session_state.role = "Admin"
-            st.success("Connecté en tant qu'administrateur")
+    with st.form(key="admin_login_form"):
+        email = st.text_input("Email admin")
+        password = st.text_input("Mot de passe admin", type="password")
+        if st.form_submit_button("Connexion"):
+            if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+                st.session_state.admin_logged_in = True
+                st.session_state.role = "Admin"
+                st.success("Connecté en tant qu'administrateur")
         else:
-            st.error("Email ou mot de passe incorrect")
+                st.error("Email ou mot de passe incorrect")
 
 
 def admin_panel():
@@ -250,13 +251,25 @@ def login():
                 st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
 
 
+st.session_state.show_admin_login = False
+st.session_state.show_user_inscription = False
+st.session_state.admin_is_login = False
+st.session_state.user_is_login = False
+
 def main2():
+
+    if st.button("Accès Administrateur"):
+        st.session_state.show_admin_login = True
+        admin_login()
+
+    if st.button("Inscription/Connexion"):
+        st.session_state.show_user_inscription = True
+        #login()
+
     #st.session_state.role="User"
 
     st.header("Main 2")
     st.title("hello world")
-    
- 
     
     params = st.experimental_get_query_params()
     unique_id = params.get("id", [""])[0]
