@@ -8,7 +8,6 @@ import base64
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import plotly.express as px
 import sqlite3
 from PIL import Image, ImageDraw
 
