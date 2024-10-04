@@ -110,7 +110,8 @@ def init_data():
 
 def send_login_link(email):
     unique_id = str(uuid.uuid4())
-    login_link = f"http://localhost:8501/?id={unique_id}"
+    #login_link = f"http://localhost:8501/?id={unique_id}"
+    login_link = f"http://picrat-art.streamlit.app/?id={unique_id}"
     
     upsert_user(email, unique_id)
 
