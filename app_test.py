@@ -8,12 +8,14 @@ import base64
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import plotly.express as px
 import sqlite3
 from PIL import Image, ImageDraw
 
 chemin_image = os.path.join("images", "2.png")
 
-def dessiner_disque(image, x, y, rayon, couleur):
+def dessiner_disque(image, x, y python -m venv venv
+, rayon, couleur):
     # Créer une nouvelle image avec un canal alpha pour le disque
     disque = Image.new('RGBA', (image.width, image.height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(disque)
@@ -206,13 +208,6 @@ def dashboard_page():
         active_users = len(st.session_state.users[st.session_state.users['last_login'] > pd.Timestamp.now() - pd.Timedelta(days=7)])
         st.metric("Utilisateurs actifs (7 derniers jours)", active_users)
     
-    # Graphique des connexions
-    st.subheader("Activité des utilisateurs")
-    fig = px.scatter(st.session_state.users, x='last_login', y='username', color='is_admin',
-                     title="Dernières connexions des utilisateurs",
-                     labels={'last_login': 'Dernière connexion', 'username': 'Utilisateur', 'is_admin': 'Administrateur'})
-    st.plotly_chart(fig)
-
 def user_management_page():
     st.title("Gestion des utilisateurs")
     

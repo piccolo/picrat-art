@@ -14,6 +14,8 @@
 ```python
  pip install -r requirements
 ```
+- lancement du programme
+streamlit run app.py
 ## TODO
 - [ ] [Créer le compte admin]
 - [ ] [Créer les comptes utilisateurs avec un token unique]
