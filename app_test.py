@@ -1,4 +1,6 @@
 import streamlit as st
+import os
+import io
 import pandas as pd
 from hashlib import sha256
 import uuid
@@ -8,6 +10,47 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import plotly.express as px
 import sqlite3
+from PIL import Image, ImageDraw
+
+chemin_image = os.path.join("images", "2.png")
+
+def dessiner_disque(image, x, y, rayon, couleur):
+    # Créer une nouvelle image avec un canal alpha pour le disque
+    disque = Image.new('RGBA', (image.width, image.height), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(disque)
+    draw.ellipse((x-rayon, y-rayon, x+rayon, y+rayon), fill=couleur)
+    
+    # Fusionner le disque avec l'image de fond
+    return Image.alpha_composite(image.convert('RGBA'), disque)
+
+def creer_image_avec_disques(image_fond, disques):
+    # Convertir l'image de fond en mode RGBA si ce n'est pas déjà le cas
+    image = image_fond.convert('RGBA')
+    for x, y, rayon, couleur in disques:
+        image = dessiner_disque(image, x, y, rayon, couleur)
+    return image
+
+def picrat_art():
+    st.header("Picrat-Art")
+    image_fond = Image.open(chemin_image)
+    x = 800
+    y = 800
+    rayon = 100
+    couleur = "#3cc62e"
+    transparence = 128
+
+    # Convertir la couleur en RGBA avec la transparence
+    couleur_rgba = tuple(int(couleur.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (transparence,)
+    st.session_state.disques = st.session_state.get('disques', []) + [(x, y, rayon, couleur_rgba)]
+
+    image_resultat = creer_image_avec_disques(image_fond.copy(), st.session_state.get('disques', []))
+    # Convertir l'image en bytes pour l'affichage
+    buf = io.BytesIO()
+    image_resultat.save(buf, format="PNG")
+    
+    # Afficher l'image résultante
+    st.image(buf.getvalue(), caption="Image avec disques", use_column_width=True)
+
 
 # Configuration pour l'envoi d'emails
 SMTP_SERVER = "smtp.gmail.com"
@@ -93,6 +136,7 @@ def authenticate(username, password):
 
 # Page principale
 def main():
+    init_db()
     st.title("Application avec authentification par lien unique")
     
     if 'users' not in st.session_state or 'active_links' not in st.session_state:
@@ -102,33 +146,16 @@ def main():
         st.session_state.logged_in = False
     
     # Vérification du lien unique dans l'URL
-    params = st.experimental_get_query_params()
-    unique_id = params.get("id",[""])[0]
+    #params = st.query_params()
+    unique_id = st.query_params.get("id")
     if unique_id:
-        st.write("unique id {unique_id}")        
         email = is_valid_link(unique_id)
-        st.write("unique id {unique_id}")        
         if email:
             st.success(f"Connecté en tant que {email}")
             st.session_state.logged_in = True
             st.session_state.is_admin = False
             st.session_state.username = email
-            #user_index = st.session_state.users.index[st.session_state.users['unique_link'] == link].tolist()[0]
-            #st.session_state.users.at[user_index, 'last_login'] = pd.Timestamp.now()
-            st.experimental_set_query_params()
-            st.rerun()
-    # if 'link' in params:
-    #     link = params['link'][0]
-    #     user = st.session_state.users[st.session_state.users['unique_link'] == link]
-    #     if not user.empty:
-    #         st.session_state.logged_in = True
-    #         st.session_state.is_admin = user.iloc[0]['is_admin']
-    #         st.session_state.username = user.iloc[0]['username']
-    #         user_index = st.session_state.users.index[st.session_state.users['unique_link'] == link].tolist()[0]
-    #         st.session_state.users.at[user_index, 'last_login'] = pd.Timestamp.now()
-    #         st.experimental_set_query_params()
-    #         st.rerun()
-    
+            st.query_params.update()
     if not st.session_state.logged_in:
         username = st.text_input("Nom d'utilisateur (admin)")
         password = st.text_input("Mot de passe", type="password")
@@ -137,12 +164,14 @@ def main():
                 st.session_state.logged_in = True
                 st.session_state.is_admin = True
                 st.session_state.username = username
+                st.query_params.update()    
                 st.rerun()
             else:
                 st.error("Authentification échouée")
     else:
         if st.sidebar.button("Se déconnecter"):
             st.session_state.logged_in = False
+            st.query_params.update()    
             st.rerun()
         
         if st.session_state.is_admin:
@@ -156,7 +185,10 @@ def admin_pages():
     pages = {
         "Tableau de bord": dashboard_page,
         "Gestion des utilisateurs": user_management_page,
+        "Activités": admin_list_activity_page,
+        "Picrat_art": picrat_art,
         "Paramètres": settings_page
+
     }
     
     selection = st.sidebar.radio("Aller à", list(pages.keys()))
@@ -182,7 +214,6 @@ def dashboard_page():
                      labels={'last_login': 'Dernière connexion', 'username': 'Utilisateur', 'is_admin': 'Administrateur'})
     st.plotly_chart(fig)
 
-
 def user_management_page():
     st.title("Gestion des utilisateurs")
     
@@ -195,7 +226,6 @@ def user_management_page():
     
     st.subheader("Générer un lien pour un nouvel utilisateur")
     email = st.text_input("Adresse email")
-    #is_admin = st.checkbox("Est administrateur?")
     if st.button("Envoyer le lien de connexion"):
         try:
             send_login_link(email)
@@ -203,12 +233,10 @@ def user_management_page():
             st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
         except Exception as e:
             st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
-    
-    # st.subheader("Supprimer un utilisateur")
-    # user_to_delete = st.selectbox("Sélectionnez un utilisateur à supprimer", users_df)
-    # if st.button("Supprimer l'utilisateur"):
-    #     st.session_state.users = st.session_state.users[st.session_state.users['username'] != user_to_delete]
-    #     st.success(f"L'utilisateur {user_to_delete} a été supprimé avec succès.")
+def admin_list_activity_page():
+    st.title("Listes des activités enregistrées")
+    df = get_all_activity()
+    st.write(df)
 
 def settings_page():
     st.title("Paramètres")
@@ -228,66 +256,82 @@ def settings_page():
 def user_home_page():
     st.title("Accueil utilisateur")
     st.write(f"Bienvenue, {st.session_state.username}!")
-    
-    st.subheader("Activité récente")
-    recent_messages = st.session_state.messages[
-        (st.session_state.messages['from'] == st.session_state.username) |
-        (st.session_state.messages['to'] == st.session_state.username)
-    ].sort_values('timestamp', ascending=False).head(5)
-    
-    if not recent_messages.empty:
-        st.write("Vos messages récents :")
-        for _, message in recent_messages.iterrows():
-            st.text(f"{message['timestamp']}: De {message['from']} à {message['to']} - {message['message']}")
-    else:
-        st.write("Vous n'avez pas de messages récents.")
 
-def user_profile_page():
-    st.title("Profil utilisateur")
-    
-    # st.subheader("Informations du profil")
-    # profile = st.text_area("Votre profil", user['profile'])
-    # if st.button("Mettre à jour le profil"):
-    #     user_index = st.session_state.users.index[st.session_state.users['username'] == st.session_state.username].tolist()[0]
-    #     st.session_state.users.at[user_index, 'profile'] = profile
-    #     st.success("Votre profil a été mis à jour avec succès.")
+def save_activity(email, niveau, sous_niveau, frequence, score):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''INSERT INTO activities 
+                 (email, niveau, sous_niveau, frequence, score) 
+                 VALUES (?, ?, ?, ?, ?)''', 
+              (email, niveau, sous_niveau, frequence, score))
+    conn.commit()
+    conn.close()
 
-def user_messages_page():
-    st.title("Messages")
-    
-    st.subheader("Envoyer un message")
-    recipient = st.selectbox("Destinataire", st.session_state.users['username'][st.session_state.users['username'] != st.session_state.username])
-    message = st.text_area("Message")
-    if st.button("Envoyer"):
-        new_message = pd.DataFrame({
-            'from': [st.session_state.username],
-            'to': [recipient],
-            'message': [message],
-            'timestamp': [pd.Timestamp.now()]
-        })
-        st.session_state.messages = pd.concat([st.session_state.messages, new_message], ignore_index=True)
-        st.success("Message envoyé avec succès.")
-    
-    st.subheader("Vos messages")
-    user_messages = st.session_state.messages[
-        (st.session_state.messages['from'] == st.session_state.username) |
-        (st.session_state.messages['to'] == st.session_state.username)
-    ].sort_values('timestamp', ascending=False)
-    
-    if not user_messages.empty:
-        for _, message in user_messages.iterrows():
-            st.text(f"{message['timestamp']}: De {message['from']} à {message['to']} - {message['message']}")
-    else:
-        st.write("Vous n'avez pas de messages.")
+def user_add_activity_page():
+    st.title("Enregistrer une activité")
 
+    niveau = st.selectbox("Niveau", ["Collège", "Lycée", "Post-Bac"])
+        
+    sous_niveau = ""
+    if niveau == "Collège":
+        sous_niveau = st.selectbox("Classe", ["6e", "5e", "4e", "3e"])
+    elif niveau == "Lycée":
+        sous_niveau = st.selectbox("Classe", ["Seconde", "Première", "Terminale"])
+    
+    frequence = st.selectbox("Fréquence de l'activité", 
+                            ["Très souvent (plusieurs fois par semaine)", 
+                            "Souvent (Une fois par semaine)", 
+                            "Parfois (1 fois par mois)", 
+                            "Rarement (quelques fois dans l'année)"])
+    
+    st.subheader("Questions PIC-RAT")
+
+    resultat = 0
+    interaction = st.radio("Est-ce que la technologie permet aux élèves d'interagir ?",("Oui", "Non"), index=None)
+    if interaction == 'Oui':
+        resultat  = 1
+        construction = st.radio("Est-ce que la technologie permet à l'élève de participer à la construction de sa connaissance ?",("Oui", "Non"),index=None)
+        if construction == 'Oui':
+            resultat = 2
+        
+    analogique = st.radio("Est-ce que cette activité peut être réalisée de manière identique en analogique ?",("Oui", "Non"),index=None)
+    if analogique == 'Oui':
+        resultat = resultat + 10
+        transformation = st.radio("Est-ce que la technologie transforme les tâches d'apprentissage ?",("Oui", "Non"),index=None)
+        if transformation == 'Oui':
+            resultat = resultat + 10
+        
+    if st.button("Enregistrer l'activité"):
+        save_activity(st.session_state.username, niveau, sous_niveau, frequence, resultat) 
+        st.success("Activité enregistrée avec succès!")
+
+def get_all_activity():
+    conn = sqlite3.connect('users.db')
+    query = "SELECT email, niveau, sous_niveau, frequence, score FROM activities"
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
+
+def get_user_activity():
+    conn = sqlite3.connect('users.db')
+    query = "SELECT email, niveau, sous_niveau, frequence, score FROM activities WHERE email = ?"
+    df = pd.read_sql_query(query, conn, params=(st.session_state.username,))
+    conn.close()
+    return df
+
+def user_activity_list_page():
+    st.title("Liste des activités")
+    df = get_user_activity()
+    st.write(df)
 
 def user_pages():
     st.sidebar.title(f"Bienvenue, {st.session_state.username}")
     
     pages = {
         "Accueil": user_home_page,
-        "Profil": user_profile_page,
-        "Messages": user_messages_page
+        "Listes de activites" : user_activity_list_page,
+        "Ajouter une activite": user_add_activity_page,
     }
     
     selection = st.sidebar.radio("Aller à", list(pages.keys()))
