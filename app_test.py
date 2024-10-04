@@ -14,8 +14,7 @@ from PIL import Image, ImageDraw
 
 chemin_image = os.path.join("images", "2.png")
 
-def dessiner_disque(image, x, y python -m venv venv
-, rayon, couleur):
+def dessiner_disque(image, x, y, rayon, couleur):
     # Créer une nouvelle image avec un canal alpha pour le disque
     disque = Image.new('RGBA', (image.width, image.height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(disque)
