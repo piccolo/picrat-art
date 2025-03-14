@@ -14,6 +14,19 @@ from PIL import Image, ImageDraw
 
 chemin_image = os.path.join("images", "2.png")
 
+ROLES = [None, "Admin", "User"]
+
+# Configuration pour l'envoi d'emails
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_USERNAME = "vincent.roullier@gmail.com"
+SMTP_PASSWORD = "hhxg qzst jemv hvxt"
+
+# Identifiants de l'administrateur
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "mdp"
+
+
 def dessiner_disque(image, x, y, rayon, couleur):
     # Créer une nouvelle image avec un canal alpha pour le disque
     disque = Image.new('RGBA', (image.width, image.height), (0, 0, 0, 0))
@@ -52,12 +65,6 @@ def picrat_art():
     st.image(buf.getvalue(), caption="Image avec disques", use_column_width=True)
 
 
-# Configuration pour l'envoi d'emails
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USERNAME = "vincent.roullier@gmail.com"
-SMTP_PASSWORD = "hhxg qzst jemv hvxt"
-
 # Initialisation de la base de données
 def init_db():
     conn = sqlite3.connect('users.db')
@@ -65,7 +72,7 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (email TEXT PRIMARY KEY, link_id TEXT, is_active INTEGER)''')
     c.execute('''CREATE TABLE IF NOT EXISTS activities
-                 (id INTEGER PRIMARY KEY, email TEXT, niveau TEXT, sous_niveau TEXT, 
+                 (id INTEGER PRIMARY KEY, titre TEXT, description TEXT, niveau TEXT, sous_niveau TEXT, 
                  frequence TEXT, score INTEGER)''')
     conn.commit()
     conn.close()
@@ -188,7 +195,6 @@ def admin_pages():
         "Activités": admin_list_activity_page,
         "Picrat_art": picrat_art,
         "Paramètres": settings_page
-
     }
     
     selection = st.sidebar.radio("Aller à", list(pages.keys()))
@@ -257,33 +263,40 @@ def user_home_page():
     st.title("Accueil utilisateur")
     st.write(f"Bienvenue, {st.session_state.username}!")
 
-def save_activity(email, niveau, sous_niveau, frequence, score):
+def save_activity(titre, description, niveau, sous_niveau, frequence, score):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     c.execute('''INSERT INTO activities 
-                 (email, niveau, sous_niveau, frequence, score) 
+                 (titre, description, niveau, sous_niveau, frequence, score) 
                  VALUES (?, ?, ?, ?, ?)''', 
-              (email, niveau, sous_niveau, frequence, score))
+              (titre, description, niveau, sous_niveau, frequence, score))
     conn.commit()
     conn.close()
 
 def user_add_activity_page():
     st.title("Enregistrer une activité")
 
-    niveau = st.selectbox("Niveau", ["Collège", "Lycée", "Post-Bac"])
+    titre = st.text_area("Titre")
+
+    description = st.text_area("Description")
+
+    niveau = st.selectbox("Niveau", ["Collège", "Lycée", "Lycée Pro", "Post-Bac"])
         
     sous_niveau = ""
     if niveau == "Collège":
         sous_niveau = st.selectbox("Classe", ["6e", "5e", "4e", "3e"])
     elif niveau == "Lycée":
         sous_niveau = st.selectbox("Classe", ["Seconde", "Première", "Terminale"])
+    elif niveau == "Lycée Pro":
+        sous_niveau = st.selectbox("Classe", ["Seconde Bac Pro", "Première Bac Pro", "Terminale Bac Pro", "Seconde CAP", "Terminale CAP"])
+    elif niveau == "Post-Bac":
+        sous_niveau = st.selectbox("Classe", ["CPGE", "Licence", "Master", "BTS", "Ecole Supérieur"])
     
     frequence = st.selectbox("Fréquence de l'activité", 
                             ["Très souvent (plusieurs fois par semaine)", 
                             "Souvent (Une fois par semaine)", 
                             "Parfois (1 fois par mois)", 
                             "Rarement (quelques fois dans l'année)"])
-    
     st.subheader("Questions PIC-RAT")
 
     resultat = 0
@@ -302,12 +315,12 @@ def user_add_activity_page():
             resultat = resultat + 10
         
     if st.button("Enregistrer l'activité"):
-        save_activity(st.session_state.username, niveau, sous_niveau, frequence, resultat) 
+        save_activity(titre, description, niveau, sous_niveau, frequence, resultat) 
         st.success("Activité enregistrée avec succès!")
 
 def get_all_activity():
     conn = sqlite3.connect('users.db')
-    query = "SELECT email, niveau, sous_niveau, frequence, score FROM activities"
+    query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities"
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
@@ -315,7 +328,7 @@ def get_all_activity():
 
 def get_user_activity():
     conn = sqlite3.connect('users.db')
-    query = "SELECT email, niveau, sous_niveau, frequence, score FROM activities WHERE email = ?"
+    query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities WHERE email = ?"
     df = pd.read_sql_query(query, conn, params=(st.session_state.username,))
     conn.close()
     return df
