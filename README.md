@@ -15,13 +15,13 @@
  pip install -r requirements
 ```
 ## TODO
-- [ ] [Créer le compte admin]
-- [ ] [Créer les comptes utilisateurs avec un token unique]
+- [x] [Créer le compte admin]
+- [x] [Créer les comptes utilisateurs avec un token unique]
 - [x] Ajouter les Lycées Professionnels avec les classes suivantes :  Seconde Bac pro, Première Bac pro, Terminale Bac pro, Seconde CAP, Terminale CAP.
 - [x] Classes pour le Post bac : CPGE, Licence universitaire, Master universitaire, BTS, Ecole supérieure, 
 - [ ] Ajouter enseignement adapté dans Niveau
-- [ ] Ajouter le nom de la pratique / activité  + description
-- [ ] Afficher le classement de la pratique / activité à la fin. 
+- [x] Ajouter le nom de la pratique / activité  + description
+- [] Afficher le classement de la pratique / activité à la fin. 
 - [ ] Avoir la possibilité de classer l’activité dans un dossier personnel (classe, niveau …)
 - [ ] Dans la liste des activités, mettre le code plutôt que le score 
 - [ ] Pouvoir modifier l’activité

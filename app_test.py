@@ -308,7 +308,7 @@ def user_add_activity_page():
             resultat = 2
         
     analogique = st.radio("Est-ce que cette activité peut être réalisée de manière identique en analogique ?",("Oui", "Non"),index=None)
-    if analogique == 'Oui':
+    if analogique == 'Non':
         resultat = resultat + 10
         transformation = st.radio("Est-ce que la technologie transforme les tâches d'apprentissage ?",("Oui", "Non"),index=None)
         if transformation == 'Oui':
@@ -328,7 +328,7 @@ def get_all_activity():
 
 def get_user_activity():
     conn = sqlite3.connect('users.db')
-    query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities WHERE email = ?"
+    query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities" # WHERE email = ?"
     df = pd.read_sql_query(query, conn, params=(st.session_state.username,))
     conn.close()
     return df
