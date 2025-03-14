@@ -324,6 +324,7 @@ def user_add_activity_page():
         if transformation == 'Oui':
             resultat = resultat + 10
             questionnaire2 = True
+    else:
         questionnaire2 = True
     
         
