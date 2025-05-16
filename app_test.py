@@ -72,7 +72,11 @@ def init_db():
     c.execute('''CREATE TABLE IF NOT EXISTS users
                  (email TEXT PRIMARY KEY, link_id TEXT, is_active INTEGER)''')
     c.execute('''CREATE TABLE IF NOT EXISTS activities
+<<<<<<< HEAD
                  (id INTEGER PRIMARY KEY, titre TEXT, description TEXT, niveau TEXT, sous_niveau TEXT, 
+=======
+                 (id INTEGER PRIMARY KEY, email TEXT, name TEXT, description TEXT, niveau TEXT, sous_niveau TEXT, 
+>>>>>>> ba54cae (new archi)
                  frequence TEXT, score INTEGER)''')
     conn.commit()
     conn.close()
@@ -118,7 +122,13 @@ def init_data():
 def send_login_link(email):
     unique_id = str(uuid.uuid4())
     login_link = f"http://localhost:8501/?id={unique_id}"
+<<<<<<< HEAD
     
+=======
+    #login_link = f"http://picrat-art.streamlit.app/?id={unique_id}"
+    print(login_link)
+
+>>>>>>> ba54cae (new archi)
     upsert_user(email, unique_id)
 
     message = MIMEMultipart()
@@ -140,9 +150,73 @@ def authenticate(username, password):
         if user.iloc[0]['password'] == hash_password(password):
             return True
     return False
+def main():
+    init_db()
+    st.title("Bienvenue sur PicRat-Art")
+    
+    if 'users' not in st.session_state or 'active_links' not in st.session_state:
+        st.session_state.users, st.session_state.active_links = init_data()
+    
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    # Vérification du lien unique dans l'URL
+    unique_id = st.query_params.get("id")
+    if unique_id:
+        email = is_valid_link(unique_id)
+        if email:
+            st.success(f"Connecté en tant que {email}")
+            st.session_state.logged_in = True
+            st.session_state.is_admin = False
+            st.session_state.username = email
+            st.query_params.update()
+            st.rerun()
+
+    if not st.session_state.logged_in:
+        # Création des onglets
+        tab1, tab2 = st.tabs(["Connexion", "Créer un compte"])
+        
+        with tab1:
+            # Connexion admin
+            st.subheader("Connexion administrateur")
+            username = st.text_input("Nom d'utilisateur (admin)")
+            password = st.text_input("Mot de passe", type="password")
+            if st.button("Se connecter"):
+                if authenticate(username, password):
+                    st.session_state.logged_in = True
+                    st.session_state.is_admin = True
+                    st.session_state.username = username
+                    st.query_params.update()    
+                    st.rerun()
+                else:
+                    st.error("Authentification échouée")
+
+        with tab2:
+            # Création de compte
+            st.subheader("Créer un compte")
+            st.write("Entrez votre email pour recevoir un lien de connexion unique")
+            email = st.text_input("Adresse email")
+            if st.button("Créer un compte"):
+                try:
+                    send_login_link(email)
+                    st.success("Un lien de connexion a été envoyé à votre adresse email.")
+                    st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
+                except Exception as e:
+                    st.error(f"Une erreur s'est produite lors de l'envoi de l'email : {str(e)}")
+    else:
+        # Affichage de l'interface utilisateur une fois connecté
+        if st.sidebar.button("Se déconnecter"):
+            st.session_state.logged_in = False
+            st.query_params.update()    
+            st.rerun()
+        
+        if st.session_state.is_admin:
+            admin_pages()
+        else:
+            user_pages()
 
 # Page principale
-def main():
+def main2():
     init_db()
     st.title("Application avec authentification par lien unique")
     
@@ -263,11 +337,19 @@ def user_home_page():
     st.title("Accueil utilisateur")
     st.write(f"Bienvenue, {st.session_state.username}!")
 
+<<<<<<< HEAD
 def save_activity(titre, description, niveau, sous_niveau, frequence, score):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     c.execute('''INSERT INTO activities 
                  (titre, description, niveau, sous_niveau, frequence, score) 
+=======
+def save_activity(email, name, description, niveau, sous_niveau, frequence, score):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''INSERT INTO activities 
+                 (email, name, description, niveau, sous_niveau, frequence, score) 
+>>>>>>> ba54cae (new archi)
                  VALUES (?, ?, ?, ?, ?)''', 
               (titre, description, niveau, sous_niveau, frequence, score))
     conn.commit()
@@ -276,9 +358,14 @@ def save_activity(titre, description, niveau, sous_niveau, frequence, score):
 def user_add_activity_page():
     st.title("Enregistrer une activité")
 
+<<<<<<< HEAD
     titre = st.text_area("Titre")
 
     description = st.text_area("Description")
+=======
+    name = st.text("Nom de l activité")
+    description = st.text("Description de l activite")
+>>>>>>> ba54cae (new archi)
 
     niveau = st.selectbox("Niveau", ["Collège", "Lycée", "Lycée Pro", "Post-Bac"])
         
@@ -288,10 +375,16 @@ def user_add_activity_page():
     elif niveau == "Lycée":
         sous_niveau = st.selectbox("Classe", ["Seconde", "Première", "Terminale"])
     elif niveau == "Lycée Pro":
+<<<<<<< HEAD
         sous_niveau = st.selectbox("Classe", ["Seconde Bac Pro", "Première Bac Pro", "Terminale Bac Pro", "Seconde CAP", "Terminale CAP"])
     elif niveau == "Post-Bac":
         sous_niveau = st.selectbox("Classe", ["CPGE", "Licence", "Master", "BTS", "Ecole Supérieur"])
     
+=======
+        sous_niveau = st.selectbox("Classe", ["Seconde Bac Pro", "Première Bac Pro", "Terminal Bac Pro", "Seconde CAP", "Terminal CAP"])
+    elif niveau == "Post-Bac":
+        sous_niveau = st.selectbox("Classe",["CPGE", "Licence Universitaire", "Master Universitaire", "BTS", "Ecole Supérieur", "Autres"])
+>>>>>>> ba54cae (new archi)
     frequence = st.selectbox("Fréquence de l'activité", 
                             ["Très souvent (plusieurs fois par semaine)", 
                             "Souvent (Une fois par semaine)", 
@@ -328,6 +421,7 @@ def user_add_activity_page():
         questionnaire2 = True
     
         
+<<<<<<< HEAD
     if questionnaire1 & questionnaire2:
         if st.button("Enregistrer l'activité"):
             save_activity(titre, description, niveau, sous_niveau, frequence, resultat) 
@@ -336,6 +430,15 @@ def user_add_activity_page():
 def get_all_activity():
     conn = sqlite3.connect('users.db')
     query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities"
+=======
+    if st.button("Enregistrer l'activité"):
+        save_activity(st.session_state.username, name, description, niveau, sous_niveau, frequence, resultat) 
+        st.success("Activité enregistrée avec succès!")
+
+def get_all_activity():
+    conn = sqlite3.connect('users.db')
+    query = "SELECT email, name, description, niveau, sous_niveau, frequence, score FROM activities"
+>>>>>>> ba54cae (new archi)
     df = pd.read_sql_query(query, conn)
     conn.close()
     return df
@@ -343,7 +446,11 @@ def get_all_activity():
 
 def get_user_activity():
     conn = sqlite3.connect('users.db')
+<<<<<<< HEAD
     query = "SELECT titre, description, niveau, sous_niveau, frequence, score FROM activities" # WHERE email = ?"
+=======
+    query = "SELECT name, description niveau, sous_niveau, frequence, score FROM activities WHERE email = ?"
+>>>>>>> ba54cae (new archi)
     df = pd.read_sql_query(query, conn, params=(st.session_state.username,))
     conn.close()
     return df
