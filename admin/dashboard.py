@@ -7,8 +7,10 @@ def dashboard_page():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.metric("Nombre total d'utilisateurs", len(st.session_state.users))
+        #st.metric("Nombre total d'utilisateurs", len(st.session_state.users))
+        st.text("mettre un message")
     
     with col2:
-        active_users = len(st.session_state.users[st.session_state.users['last_login'] > pd.Timestamp.now() - pd.Timedelta(days=7)])
-        st.metric("Utilisateurs actifs (7 derniers jours)", active_users)
+        st.text("Dernière activité a completer")
+        #active_users = len(st.session_state.users[st.session_state.users['last_login'] > pd.Timestamp.now() - pd.Timedelta(days=7)])
+        #st.metric("Utilisateurs actifs (7 derniers jours)", active_users)

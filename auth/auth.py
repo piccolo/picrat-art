@@ -2,9 +2,31 @@ import streamlit as st
 import uuid
 from database.models import upsert_user
 from utils.email_sender import send_login_email
+import sqlite3
+
+# Fonction pour vérifier si un lien est valide
+def is_valid_link(link_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute("SELECT email FROM users WHERE link_id = ? AND is_active = 1", (link_id,))
+    result = c.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def check_valid_link():
+    unique_id = st.query_params.get("id")
+    print(unique_id)
+    if unique_id:
+        email = is_valid_link(unique_id)
+        st.session_state.logged_in = True
+        st.session_state.is_admin = False
+        st.session_state.username = email
+    else:
+        print("not valid link")
 
 def verify_auth():
     """Vérifie si l'utilisateur est authentifié"""
+
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
     return st.session_state.logged_in
@@ -36,7 +58,9 @@ def login_page():
         email = st.text_input("Adresse email")
         if st.button("Créer un compte"):
             try:
-                send_login_link(email)
+                unique_id = str(uuid.uuid4())
+                upsert_user(email, unique_id)
+                send_login_email(email,unique_id)
                 st.success("Un lien de connexion a été envoyé à votre adresse email.")
                 st.write("Veuillez vérifier votre boîte de réception et cliquer sur le lien pour vous connecter.")
             except Exception as e:
