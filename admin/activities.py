@@ -9,30 +9,47 @@ def admin_list_activity_page():
     conn = sqlite3.connect('users.db')
     
     # Récupération de toutes les activités avec le mail de l'utilisateur
+    # query = """
+    # SELECT activities.*, users.email 
+    # FROM activities 
+    # JOIN users ON activities.email = users.email
+    # ORDER BY activities.date_creation DESC
+    # """
     query = """
-    SELECT activities.*, users.email 
-    FROM activities 
+    SELECT activities.id,
+       activities.email,
+       activities.name,
+       activities.description,
+       activities.niveau,
+       activities.sous_niveau,
+       activities.frequence,
+       activities.score,
+       activities.date_creation,
+       users.email AS user_email
+    FROM activities
     JOIN users ON activities.email = users.email
     ORDER BY activities.date_creation DESC
     """
-    
     try:
         df = pd.read_sql_query(query, conn)
-        
         # Ajout de filtres
         col1, col2 = st.columns(2)
         with col1:
             if not df.empty and 'niveau' in df.columns:
                 niveau_filter = st.multiselect(
                     "Filtrer par niveau",
-                    options=df['niveau'].unique()
+                    options=df['niveau'].dropna().unique()
                 )
+            else:
+                niveau_filter = []
         with col2:
             if not df.empty and 'email' in df.columns:
                 user_filter = st.multiselect(
                     "Filtrer par utilisateur",
-                    options=df['email'].unique()
+                    options=df['email'].dropna().unique()
                 )
+            else:
+                user_filter = []
         
         # Application des filtres
         if niveau_filter:

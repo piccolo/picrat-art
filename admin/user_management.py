@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
+import uuid
+from database.models import upsert_user
 from utils.email_sender import send_login_email
 
 def user_management_page():
@@ -15,7 +17,9 @@ def user_management_page():
     email = st.text_input("Adresse email")
     if st.button("Envoyer le lien de connexion"):
         try:
-            send_login_email(email)
+            unique_id = str(uuid.uuid4())
+            upsert_user(email, unique_id)
+            send_login_email(email,unique_id)
             st.success("Un lien de connexion a été envoyé à l'adresse email.")
             st.write("L'utilisateur recevra le lien dans sa boîte mail.")
         except Exception as e:

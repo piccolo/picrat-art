@@ -18,7 +18,8 @@ def init_db():
                   niveau TEXT,
                   sous_niveau TEXT,
                   frequence TEXT,
-                  score INTEGER)''')
+                  score INTEGER,
+                  date_creation TEXT)''')
     conn.commit()
     conn.close()
 

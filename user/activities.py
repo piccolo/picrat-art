@@ -1,14 +1,16 @@
 import streamlit as st
 import sqlite3
+import datetime
 import pandas as pd
 
 def save_activity(email, name, description, niveau, sous_niveau, frequence, score):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
+    date_creation = datetime.datetime.now().isoformat()
     c.execute('''INSERT INTO activities 
-                 (email, name, description, niveau, sous_niveau, frequence, score) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)''', 
-              (email, name, description, niveau, sous_niveau, frequence, score))
+                 (email, name, description, niveau, sous_niveau, frequence, score, date_creation) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', 
+              (email, name, description, niveau, sous_niveau, frequence, score, date_creation))
     conn.commit()
     conn.close()
 
