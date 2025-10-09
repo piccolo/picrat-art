@@ -30,9 +30,7 @@ def dessiner_disque(image, x, y, rayon, couleur):
 def creer_image_avec_disques(image_fond, disques):
     # Convertir l'image de fond en mode RGBA si ce n'est pas déjà le cas
     image = image_fond.convert('RGBA')
-    print("nb disques :  ", len(disques))
     for x, y, rayon, couleur in disques:
-        print(x," , ", y," , ", rayon," , ", couleur)
         image = dessiner_disque(image, x, y, rayon, couleur)
     return image
 
@@ -54,7 +52,7 @@ def display():
     df = get_user_activities()
 
     df_selectionne = df[df[df.columns[0]].isin(ids)]
-
+    st.session_state.disques = []
 
     # Convertir la couleur en RGBA avec la transparence
     couleur_rgba = tuple(int(couleur.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)) + (transparence,)
@@ -62,8 +60,6 @@ def display():
     for i, element in enumerate(ids):
         # Pour chaque élément, dessiner un disque avec des paramètres variables
         score = df_selectionne.iloc[i].get('score', 0)  # Remplacez 'score' par le nom de la colonne appropriée
-        print(score)
-        print(CODE_COORDONNEES[score][0] ,", " , CODE_COORDONNEES[score][1])
         # Ajouter le disque à la liste dans le session state
         st.session_state.disques = st.session_state.get('disques', []) + [(CODE_COORDONNEES[score][0],CODE_COORDONNEES[score][1], rayon, couleur_rgba)]
 
