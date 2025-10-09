@@ -12,5 +12,5 @@ DB_CONFIG = {
 }
 
 APP_CONFIG = {
-    "BASE_URL": "https://irem-caen-mn.irem.fr:8501"
+    "BASE_URL": "https://irem-caen-mn.fr:8501"
 }
