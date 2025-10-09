@@ -3,7 +3,7 @@ import sqlite3
 import datetime
 import pandas as pd
 
-def save_activity(email, name, description, niveau, sous_niveau, frequence, score):
+def save_activity(email, name, description, niveau, sous_niveau, frequence, score,date_creation):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
     date_creation = datetime.datetime.now().isoformat()
@@ -74,7 +74,7 @@ def add_activity_page():
     
     if questionnaire1 & questionnaire2:
         if st.button("Enregistrer l'activité"):
-            save_activity(st.session_state.username, name, description, niveau, sous_niveau, frequence, resultat) 
+            save_activity(st.session_state.username, name, description, niveau, sous_niveau, frequence, resultat,datetime.datetime.now().isoformat()) 
             st.success("Activité enregistrée avec succès!")
 
     # ...reste du code pour l'ajout d'activité...
@@ -85,4 +85,36 @@ def list_activities_page():
     if df.empty:
         st.info("Vous n'avez pas encore enregistré d'activités.")
     else:
-        st.dataframe(df)
+        col1, col2 = st.columns(2)
+        with col1:
+            if not df.empty and 'niveau' in df.columns:
+                niveau_filter = st.multiselect(
+                    "Filtrer par niveau",
+                    options=df['niveau'].dropna().unique()
+                )
+            else:
+                niveau_filter = []
+        # Application des filtres
+        if niveau_filter:
+            df = df[df['niveau'].isin(niveau_filter)]
+        
+        # Affichage des statistiques
+        st.subheader("Statistiques")
+        col1, col3 = st.columns(2)
+        with col1:
+            st.metric("Nombre total d'activités", len(df))
+        with col3:
+            if 'score' in df.columns:
+                st.metric("Score moyen", round(df['score'].mean(), 2))
+        
+        # Affichage du tableau des activités
+        st.subheader("Détail des activités")
+        if not df.empty:
+            st.dataframe(df)
+        else:
+            st.info("Aucune activité enregistrée pour le moment.")
+
+        if st.button("Générer Picrat-Art", type="primary"):
+            st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
+            #st.switch_page(picrat)
+            
