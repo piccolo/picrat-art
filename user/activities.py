@@ -67,8 +67,11 @@ def add_activity_page():
         questionnaire2 = True
         transformation = st.radio("Est-ce que la technologie transforme les tâches d'apprentissage ?",("Oui", "Non"),index=None)
         if transformation == 'Oui':
-            resultat = resultat + 10
+            resultat = resultat + 20
             questionnaire2 = True
+        else:
+            resultat = resultat + 10
+#            questionnaire2 = False
     else:
         questionnaire2 = True
     
@@ -82,6 +85,21 @@ def add_activity_page():
 def list_activities_page():
     st.title("Mes activités")
     df = get_user_activities()
+    
+    # Conversion explicite en type object (texte)
+    df['score'] = df['score'].astype(object)
+    df.loc[df['score'] == 0, 'score'] = "PR"
+    df.loc[df['score'] == 1, 'score'] = "PA"
+    df.loc[df['score'] == 2, 'score'] = "PT"
+    
+    df.loc[df['score'] == 10, 'score'] = "IR"
+    df.loc[df['score'] == 11, 'score'] = "IA"
+    df.loc[df['score'] == 12, 'score'] = "IT"
+    
+    df.loc[df['score'] == 20, 'score'] = "CR"
+    df.loc[df['score'] == 21, 'score'] = "CA"
+    df.loc[df['score'] == 22, 'score'] = "CT"
+    
     if df.empty:
         st.info("Vous n'avez pas encore enregistré d'activités.")
     else:
@@ -100,12 +118,12 @@ def list_activities_page():
         
         # Affichage des statistiques
         st.subheader("Statistiques")
-        col1, col3 = st.columns(2)
-        with col1:
-            st.metric("Nombre total d'activités", len(df))
-        with col3:
-            if 'score' in df.columns:
-                st.metric("Score moyen", round(df['score'].mean(), 2))
+        #col1 = st.columns(1)
+       # with col1:
+        st.metric("Nombre total d'activités", len(df))
+        #with col3:
+        #    if 'score' in df.columns:
+        #        st.metric("Score moyen", round(df['score'].mean(), 2))
         
         # Affichage du tableau des activités
         st.subheader("Détail des activités")
@@ -116,5 +134,5 @@ def list_activities_page():
 
         if st.button("Générer Picrat-Art", type="primary"):
             st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
-            #st.switch_page(picrat)
+            #st.switch_page(page=display)
             
