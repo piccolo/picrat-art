@@ -50,7 +50,6 @@ def display():
 
     df = get_user_activities()
 
-
     df_selectionne = df[df[df.columns[0]].isin(ids)]
     st.session_state.disques = []
 
@@ -83,7 +82,7 @@ def display():
     image_resultat.save(buf, format="PNG")
     
     # Afficher l'image résultante
-    st.image(buf.getvalue(), caption="Image avec disques", use_container_width=True)
+    st.image(buf.getvalue(), caption="Votre PicRat - Art", use_container_width=True)
 
 
 # Ici tu continues la logique temporaire
