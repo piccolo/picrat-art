@@ -36,7 +36,7 @@ def creer_image_avec_disques(image_fond, disques):
 
 
 def display():
-    st.title("Picrat-Art")
+    #st.title("Picrat-Art")
     st.write("Bienvenue sur la page Picrat-Art!")
     ids = st.session_state.get('filtered_ids', [])
     st.write(f"IDs reçus : {ids}")
