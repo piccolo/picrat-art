@@ -46,7 +46,7 @@ def display():
     y = 800
     rayon = 100
     couleur = "#3cc62e"
-    transparence = 128
+    transparence = 64
 
     df = get_user_activities()
 
@@ -61,6 +61,8 @@ def display():
         # Pour chaque élément, dessiner un disque avec des paramètres variables
         score = df_selectionne.iloc[i].get('score', 0)  # Remplacez 'score' par le nom de la colonne appropriée
         frequence = df_selectionne.iloc[i].get('frequence', 'Rarement (quelques fois dans l\'année)')
+        print(frequence)
+
         if frequence == "Très souvent (plusieurs fois par semaine)":
             rayon = 150
         elif frequence == "Souvent (Une fois par semaine)":
@@ -81,7 +83,7 @@ def display():
     image_resultat.save(buf, format="PNG")
     
     # Afficher l'image résultante
-    st.image(buf.getvalue(), caption="Image avec disques", use_column_width=True)
+    st.image(buf.getvalue(), caption="Image avec disques", use_container_width=True)
 
 
 # Ici tu continues la logique temporaire
