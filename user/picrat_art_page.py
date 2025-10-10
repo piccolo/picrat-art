@@ -46,7 +46,7 @@ def display():
     y = 800
     rayon = 100
     couleur = "#3cc62e"
-    transparence = 64
+    transparence = 100
 
     df = get_user_activities()
 
