@@ -89,8 +89,6 @@ def list_activities_page():
     # Conversion explicite en type object (texte)
     df['score'] = df['score'].astype(object)
     df.loc[df['score'] == 0, 'score'] = "PR"
-    df.loc[df['score'] == 10, 'score'] = "IR"
-
     df.loc[df['score'] == 1, 'score'] = "PA"
     df.loc[df['score'] == 2, 'score'] = "PT"
     

@@ -48,8 +48,8 @@ def display():
     couleur = "#3cc62e"
     transparence = 128
 
-    print("ids : ", len(ids))
     df = get_user_activities()
+
 
     df_selectionne = df[df[df.columns[0]].isin(ids)]
     st.session_state.disques = []
@@ -60,6 +60,16 @@ def display():
     for i, element in enumerate(ids):
         # Pour chaque élément, dessiner un disque avec des paramètres variables
         score = df_selectionne.iloc[i].get('score', 0)  # Remplacez 'score' par le nom de la colonne appropriée
+        frequence = df_selectionne.iloc[i].get('fréquence', 'Rarement (quelques fois dans l\'année)')
+        if frequence == "Très souvent (plusieurs fois par semaine)":
+            rayon = 150
+        elif frequence == "Souvent (Une fois par semaine)":
+            rayon = 120
+        elif frequence == "Parfois (1 fois par mois)":
+            rayon = 90
+        else:
+            rayon = 60
+
         # Ajouter le disque à la liste dans le session state
         st.session_state.disques = st.session_state.get('disques', []) + [(CODE_COORDONNEES[score][0],CODE_COORDONNEES[score][1], rayon, couleur_rgba)]
 
