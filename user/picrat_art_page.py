@@ -60,7 +60,7 @@ def display():
     for i, element in enumerate(ids):
         # Pour chaque élément, dessiner un disque avec des paramètres variables
         score = df_selectionne.iloc[i].get('score', 0)  # Remplacez 'score' par le nom de la colonne appropriée
-        frequence = df_selectionne.iloc[i].get('fréquence', 'Rarement (quelques fois dans l\'année)')
+        frequence = df_selectionne.iloc[i].get('frequence', 'Rarement (quelques fois dans l\'année)')
         if frequence == "Très souvent (plusieurs fois par semaine)":
             rayon = 150
         elif frequence == "Souvent (Une fois par semaine)":
