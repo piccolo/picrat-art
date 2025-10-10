@@ -42,6 +42,7 @@ def login_page():
         st.subheader("Créer un compte")
         st.write("Entrez votre email pour recevoir un lien de connexion unique")
         email = st.text_input("Adresse email")
+        email = email.lower()
         if st.button("Créer un compte"):
             try:
                 unique_id = str(uuid.uuid4())
