@@ -112,9 +112,20 @@ def list_activities_page():
                 )
             else:
                 niveau_filter = []
+        with col2:
+            if not df.empty and 'sous_niveau' in df.columns:
+                sous_niveau_filter = st.multiselect(
+                    "Filtrer par sous-niveau",
+                    options=df['sous_niveau'].dropna().unique()
+                )
+            else:
+                sous_niveau_filter = []
+        
         # Application des filtres
         if niveau_filter:
             df = df[df['niveau'].isin(niveau_filter)]
+        if sous_niveau_filter:
+            df = df[df['sous_niveau'].isin(sous_niveau_filter)]
         
         # Affichage des statistiques
         st.subheader("Statistiques")
