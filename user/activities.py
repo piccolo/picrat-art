@@ -50,11 +50,11 @@ def add_activity_page():
     questionnaire2 = False
     
     if interaction == 'Oui':
-        resultat  = 1
+        resultat  = 10
         questionnaire1 = True
         construction = st.radio("Est-ce que la technologie permet à l'élève de participer à la construction de sa connaissance ?",("Oui", "Non"),index=None)
         if construction == 'Oui':
-            resultat = 2
+            resultat = 20
             questionnaire1 = True
     else:
         questionnaire1 = True
@@ -67,10 +67,10 @@ def add_activity_page():
         questionnaire2 = True
         transformation = st.radio("Est-ce que la technologie transforme les tâches d'apprentissage ?",("Oui", "Non"),index=None)
         if transformation == 'Oui':
-            resultat = resultat + 20
+            resultat = resultat + 2
             questionnaire2 = True
         else:
-            resultat = resultat + 10
+            resultat = resultat + 1
 #            questionnaire2 = False
     else:
         questionnaire2 = True
@@ -89,6 +89,8 @@ def list_activities_page():
     # Conversion explicite en type object (texte)
     df['score'] = df['score'].astype(object)
     df.loc[df['score'] == 0, 'score'] = "PR"
+    df.loc[df['score'] == 10, 'score'] = "IR"
+
     df.loc[df['score'] == 1, 'score'] = "PA"
     df.loc[df['score'] == 2, 'score'] = "PT"
     
