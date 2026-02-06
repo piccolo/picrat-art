@@ -6,6 +6,7 @@ from admin.activities import admin_list_activity_page
 from user.home import user_home_page
 from user.activities import add_activity_page, list_activities_page
 from user.picrat_art_page import display
+from admin.picrat_art_page import admin_display
 from database.models import init_db
 from auth.auth import check_valid_link
 
@@ -16,6 +17,7 @@ def admin_interface():
         "Tableau de bord": dashboard_page,
         "Gestion des utilisateurs": user_management_page,
         "Activités": admin_list_activity_page,
+        "Picrat-Art": admin_display,
     }
     
     selection = st.sidebar.radio("Navigation", list(pages.keys()))

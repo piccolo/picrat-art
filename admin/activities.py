@@ -2,6 +2,13 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 
+def get_activities():
+    conn = sqlite3.connect('users.db')
+    query = "SELECT id, email, name, description, niveau, sous_niveau, frequence, score FROM activities"
+    df = pd.read_sql_query(query, conn)
+    conn.close()
+    return df
+
 def admin_list_activity_page():
     st.title("Liste des activités")
     
@@ -57,16 +64,16 @@ def admin_list_activity_page():
         if user_filter:
             df = df[df['email'].isin(user_filter)]
         
-        # Affichage des statistiques
-        st.subheader("Statistiques")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric("Nombre total d'activités", len(df))
-        with col2:
-            st.metric("Nombre d'utilisateurs actifs", df['email'].nunique())
-        with col3:
-            if 'score' in df.columns:
-                st.metric("Score moyen", round(df['score'].mean(), 2))
+        # # Affichage des statistiques
+        # st.subheader("Statistiques")
+        # col1, col2, col3 = st.columns(3)
+        # with col1:
+        #     st.metric("Nombre total d'activités", len(df))
+        # with col2:
+        #     st.metric("Nombre d'utilisateurs actifs", df['email'].nunique())
+        # with col3:
+        #     if 'score' in df.columns:
+        #         st.metric("Score moyen", round(df['score'].mean(), 2))
         
         # Affichage du tableau des activités
         st.subheader("Détail des activités")
@@ -74,6 +81,10 @@ def admin_list_activity_page():
             st.dataframe(df)
         else:
             st.info("Aucune activité enregistrée pour le moment.")
+        
+        if st.button("Générer Picrat-Art", type="primary"):
+            st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
+            #st.switch_page(page=display)
             
     except Exception as e:
         st.error(f"Erreur lors de la récupération des activités : {str(e)}")
