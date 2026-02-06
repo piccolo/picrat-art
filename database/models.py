@@ -19,7 +19,9 @@ def init_db():
                   sous_niveau TEXT,
                   frequence TEXT,
                   score INTEGER,
-                  date_creation TEXT)''')
+                  date_creation TEXT,
+                  FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
+)''')
     conn.commit()
     conn.close()
 
