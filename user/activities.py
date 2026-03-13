@@ -165,5 +165,3 @@ def list_activities_page():
 
     if st.button("Générer Picrat-Art", type="primary"):
         st.session_state['filtered_ids'] = list(selected_rows[selected_rows.columns[0]])  # ou n’importe quelle info utile
-        #st.switch_page(page=display)
-            
