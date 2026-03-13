@@ -32,3 +32,4 @@
 - [ ] Travailler la page d’accueil (« conservez votre lien de connexion….) => Mathilde propose des textes
 - [ ] Inscription : S’arranger pour que les gens scannent un QR code et on leur envoie automatiquement un lien, sans intervention de notre part.
 - [x] admin peut générer un picrat art avec toutes les activités.
+- [ ] problème de gestion de l'opacité. lorsqu'il y a bcp d'activités, les codes ne sont plus visibles. Prévoir de mettre un coefficient en fonction du nombre d'activités sélectionnées.
