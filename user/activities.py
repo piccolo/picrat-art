@@ -103,47 +103,67 @@ def list_activities_page():
     if df.empty:
         st.info("Vous n'avez pas encore enregistré d'activités.")
     else:
-        col1, col2 = st.columns(2)
-        with col1:
-            if not df.empty and 'niveau' in df.columns:
-                niveau_filter = st.multiselect(
-                    "Filtrer par niveau",
-                    options=df['niveau'].dropna().unique()
-                )
-            else:
-                niveau_filter = []
-        with col2:
-            if not df.empty and 'sous_niveau' in df.columns:
-                sous_niveau_filter = st.multiselect(
-                    "Filtrer par sous-niveau",
-                    options=df['sous_niveau'].dropna().unique()
-                )
-            else:
-                sous_niveau_filter = []
+        selection = st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        on_select="rerun",
+        selection_mode="multi-row"  # ou "single-row" pour une seule sélection
+        )
         
-        # Application des filtres
-        if niveau_filter:
-            df = df[df['niveau'].isin(niveau_filter)]
-        if sous_niveau_filter:
-            df = df[df['sous_niveau'].isin(sous_niveau_filter)]
+    st.session_state['filtered_ids'] = []  # Réinitialiser les IDs filtrés à chaque affichage de la page
+    # Récupérer les indices des lignes sélectionnées
+    if selection.selection.rows:
+        selected_indices = selection.selection.rows
+        selected_rows = df.iloc[selected_indices]
         
-        # Affichage des statistiques
-        st.subheader("Statistiques")
-        #col1 = st.columns(1)
-       # with col1:
-        st.metric("Nombre total d'activités", len(df))
-        #with col3:
-        #    if 'score' in df.columns:
-        #        st.metric("Score moyen", round(df['score'].mean(), 2))
+        st.success(f"✅ {len(selected_rows)} activité(s) sélectionnée(s)")
         
-        # Affichage du tableau des activités
-        st.subheader("Détail des activités")
-        if not df.empty:
-            st.dataframe(df)
-        else:
-            st.info("Aucune activité enregistrée pour le moment.")
+        with st.expander("Voir les activités sélectionnées"):
+            st.dataframe(selected_rows)
 
-        if st.button("Générer Picrat-Art", type="primary"):
-            st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
-            #st.switch_page(page=display)
+    #     col1, col2 = st.columns(2)
+    #     with col1:
+    #         if not df.empty and 'niveau' in df.columns:
+    #             niveau_filter = st.multiselect(
+    #                 "Filtrer par niveau",
+    #                 options=df['niveau'].dropna().unique()
+    #             )
+    #         else:
+    #             niveau_filter = []
+    #     with col2:
+    #         if not df.empty and 'sous_niveau' in df.columns:
+    #             sous_niveau_filter = st.multiselect(
+    #                 "Filtrer par sous-niveau",
+    #                 options=df['sous_niveau'].dropna().unique()
+    #             )
+    #         else:
+    #             sous_niveau_filter = []
+        
+    #     # Application des filtres
+    #     if niveau_filter:
+    #         df = df[df['niveau'].isin(niveau_filter)]
+    #     if sous_niveau_filter:
+    #         df = df[df['sous_niveau'].isin(sous_niveau_filter)]
+        
+    #     # Affichage des statistiques
+    #     st.subheader("Statistiques")
+    #     #col1 = st.columns(1)
+    #    # with col1:
+    #     st.metric("Nombre total d'activités", len(df))
+    #     #with col3:
+    #     #    if 'score' in df.columns:
+    #     #        st.metric("Score moyen", round(df['score'].mean(), 2))
+        
+    #     # Affichage du tableau des activités
+    #     st.subheader("Détail des activités")
+    #    if not df.empty:
+    #        st.dataframe(df)
+       
+    else:
+        st.info("Aucune activité enregistrée pour le moment.")
+
+    if st.button("Générer Picrat-Art", type="primary"):
+        st.session_state['filtered_ids'] = list(selected_rows[selected_rows.columns[0]])  # ou n’importe quelle info utile
+        #st.switch_page(page=display)
             
