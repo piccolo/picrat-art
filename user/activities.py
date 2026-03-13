@@ -112,6 +112,7 @@ def list_activities_page():
         )
         
     st.session_state['filtered_ids'] = []  # Réinitialiser les IDs filtrés à chaque affichage de la page
+    selected_rows = pd.DataFrame()
     # Récupérer les indices des lignes sélectionnées
     if selection.selection.rows:
         selected_indices = selection.selection.rows
@@ -164,4 +165,8 @@ def list_activities_page():
         st.info("Aucune activité enregistrée pour le moment.")
 
     if st.button("Générer Picrat-Art", type="primary"):
-        st.session_state['filtered_ids'] = list(selected_rows[selected_rows.columns[0]])  # ou n’importe quelle info utile
+        if (len(selected_rows) > 0):
+            st.session_state['filtered_ids'] = list(selected_rows[selected_rows.columns[0]])  # ou n’importe quelle info utile
+            st.success("✅ Activités sélectionnées pour Picrat-Art")
+        else:
+            st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
