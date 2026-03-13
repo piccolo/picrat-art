@@ -40,29 +40,67 @@ def admin_list_activity_page():
     try:
         df = pd.read_sql_query(query, conn)
         # Ajout de filtres
-        col1, col2 = st.columns(2)
-        with col1:
-            if not df.empty and 'niveau' in df.columns:
-                niveau_filter = st.multiselect(
-                    "Filtrer par niveau",
-                    options=df['niveau'].dropna().unique()
-                )
-            else:
-                niveau_filter = []
-        with col2:
-            if not df.empty and 'email' in df.columns:
-                user_filter = st.multiselect(
-                    "Filtrer par utilisateur",
-                    options=df['email'].dropna().unique()
-                )
-            else:
-                user_filter = []
+
+        # Conversion explicite en type object (texte)
+        df['score'] = df['score'].astype(object)
+        df.loc[df['score'] == 0, 'score'] = "PR"
+        df.loc[df['score'] == 1, 'score'] = "PA"
+        df.loc[df['score'] == 2, 'score'] = "PT"
         
-        # Application des filtres
-        if niveau_filter:
-            df = df[df['niveau'].isin(niveau_filter)]
-        if user_filter:
-            df = df[df['email'].isin(user_filter)]
+        df.loc[df['score'] == 10, 'score'] = "IR"
+        df.loc[df['score'] == 11, 'score'] = "IA"
+        df.loc[df['score'] == 12, 'score'] = "IT"
+        
+        df.loc[df['score'] == 20, 'score'] = "CR"
+        df.loc[df['score'] == 21, 'score'] = "CA"
+        df.loc[df['score'] == 22, 'score'] = "CT"
+
+        if df.empty:
+            st.info("Vous n'avez pas encore enregistré d'activités.")
+        else:
+            selection = st.dataframe(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                on_select="rerun",
+                selection_mode="multi-row"  # ou "single-row" pour une seule sélection
+                )
+        
+        st.session_state['filtered_ids'] = []  # Réinitialiser les IDs filtrés à chaque affichage de la page
+        selected_rows = pd.DataFrame()
+        # Récupérer les indices des lignes sélectionnées
+        if selection.selection.rows:
+            selected_indices = selection.selection.rows
+            selected_rows = df.iloc[selected_indices]
+            
+            st.success(f"✅ {len(selected_rows)} activité(s) sélectionnée(s)")
+            
+            with st.expander("Voir les activités sélectionnées"):
+                st.dataframe(selected_rows)
+
+        # col1, col2 = st.columns(2)
+        # with col1:
+        #     if not df.empty and 'niveau' in df.columns:
+        #         niveau_filter = st.multiselect(
+        #             "Filtrer par niveau",
+        #             options=df['niveau'].dropna().unique()
+        #         )
+        #     else:
+        #         niveau_filter = []
+        # with col2:
+        #     if not df.empty and 'email' in df.columns:
+        #         user_filter = st.multiselect(
+        #             "Filtrer par utilisateur",
+        #             options=df['email'].dropna().unique()
+        #         )
+        #     else:
+        #         user_filter = []
+        
+        # # Application des filtres
+        # if niveau_filter:
+        #     df = df[df['niveau'].isin(niveau_filter)]
+        # if user_filter:
+        #     df = df[df['email'].isin(user_filter)]
         
         # # Affichage des statistiques
         # st.subheader("Statistiques")
@@ -76,16 +114,16 @@ def admin_list_activity_page():
         #         st.metric("Score moyen", round(df['score'].mean(), 2))
         
         # Affichage du tableau des activités
-        st.subheader("Détail des activités")
-        if not df.empty:
-            st.dataframe(df)
         else:
-            st.info("Aucune activité enregistrée pour le moment.")
-        
+           st.info("Aucune activité enregistrée pour le moment.")
+
         if st.button("Générer Picrat-Art", type="primary"):
-            st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
-            #st.switch_page(page=display)
-            
+            if (len(selected_rows) > 0):
+                st.session_state['filtered_ids'] = list(selected_rows[selected_rows.columns[0]])  # ou n’importe quelle info utile
+                st.success("✅ Activités sélectionnées pour Picrat-Art")
+            else:
+                st.session_state['filtered_ids'] = list(df[df.columns[0]])  # ou n’importe quelle info utile
+                
     except Exception as e:
         st.error(f"Erreur lors de la récupération des activités : {str(e)}")
     finally:
