@@ -24,8 +24,8 @@
 - [] Afficher le classement de la pratique / activité à la fin. 
 - [ ] Avoir la possibilité de classer l’activité dans un dossier personnel (classe, niveau …)
 - [ ] Enlever la clé primaire dans le tableau des activités
-- [ ] Bouton générer le picrat-art
-- [ ] Cocher des activités
+- [x] Bouton générer le picrat-art
+- [x] Cocher des activités
 - [ ] Changer le mot activité par pratique partout.
 - [ ] Corriger le lien « Liste (au singulier) deS activités »
 - [ ] Bouton une fois que l’activité est enregistrée. 
